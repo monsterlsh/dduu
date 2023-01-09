@@ -1,0 +1,34 @@
+#include <iostream>
+using namespace std;
+const int maxn = 100005;
+int n, q, x, a[maxn];
+int main() {
+    scanf("%d%d", &n, &q);
+    for (int i = 0; i < n; i++)    scanf("%d", &a[i]);
+    while (q--) {
+        scanf("%d", &x);
+        int l = 0, r = n - 1;
+        while (l < r) {
+            int mid = l + r >> 1;
+            if (a[mid] < x)  l = mid + 1;
+            else    r = mid;
+        }
+        if (a[l] != x) {
+            printf("-1 -1\n");
+            continue;
+        }
+        int l1 = l, r1 = n;
+        while (l1 + 1 < r1) {
+            int mid = l1 + r1 >> 1;
+            if (a[mid] <= x)  l1 = mid;
+            else    r1 = mid;
+        }
+        printf("%d %d\n", l, l1);
+    }
+    return 0;
+}
+//
+//作者：昂昂累世士
+//链接：https://www.acwing.com/solution/content/3338/
+//来源：AcWing
+//著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
