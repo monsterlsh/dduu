@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>教学平台示例：展示树形结构</title>
+    <style>
+        #canvas {
+            border: 1px solid #000000;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script>
+        // 构造树形结构
+        const tree = {
+            label: "root",
+            children: [
+                {
+                    label: "node1",
+                    children: [
+                        { label: "node1.1" },
+                        { label: "node1.2" },
+                        { label: "node1.3" }
+                    ]
+                },
+                {
+                    label: "node2",
+                    children: [
+                        { label: "node2.1" },
+                        { label: "node2.2" },
+                        { label: "node2.3" }
+                    ]
+                },
+                {
+                    label: "node3",
+                    children: [
+                        { label: "node3.1" },
+                        { label: "node3.2" },
+                        { label: "node3.3" }
+                    ]
+                }
+            ]
+        };
+
+        // 计算树形结构的坐标
+        function layoutTree(node, x, y, dx, dy) {
+            node.x = x;
+            node.y = y;
+            x += dx;
+            y += dy;
+            if (node.children) {
+                const numChildren = node.children.length;
+                const step = dx / numChildren;
+                let cx = x - dx / 2 + step / 2;
+                for (let i = 0; i < numChildren; i++) {
+                    const child = node.children[i];
+                    layoutTree(child, cx, y, step, dy);
+                    cx += step;
+                }
+            }
+        }
+
+        layoutTree(tree, 400, 50, 300, 80);
+
+        // 绘制树形结构
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const nodeSize = 20;
+        const nodeColor = "#ffffff";
+        const edgeColor = "#000000";
+        const animDuration = 1000;
+        let dragNode = null;
+
+        function drawNode(node) {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, nodeSize, 0, Math.PI * 2, true);
+            ctx.fillStyle = nodeColor;
+            ctx.fill();
+            ctx.strokeStyle = edgeColor;
+            ctx.stroke();
+            ctx.fillStyle = "#000000";
+            ctx.fillText(node.label, node.x, node.y);
+        }
+
+        function drawEdge(node1, node2, progress) {
+            const x1 = node1.x;
+            const y1 = node1.y;
+            const x2 = node2.x;
+            const y2 = node2.y;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const x = x1 + dx * progress;
+            const y = y1 + dy * progress;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = edgeColor;
+            ctx.stroke();
+        }
+
+        function drawTree(node, progress) {
+            drawNode(node);
+            if (node.children) {
+
+                for (let i = 0; i < node.children.length; i++) {
+                    const child = node.children[i];
+                    drawEdge(node, child, progress);
+                    drawTree(child, progress);
+                }
+            }
+        }
+        function animateTree(tree, duration) {
+            const fps = 60;
+            const numFrames = fps * duration / 1000;
+            let frame = 0;
+            let startTime = null;
+            function animate(timestamp) {
+                if (!startTime) {
+                    startTime = timestamp;
+                }
+                const progress = Math.min(1, (timestamp - startTime) / duration);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawTree(tree, progress);
+                frame++;
+                if (frame < numFrames) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function getNodeUnderPoint(node, x, y) {
+            const dx = x - node.x;
+            const dy = y - node.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist <= nodeSize) {
+                return node;
+            }
+            if (node.children) {
+                for (let i = 0; i < node.children.length; i++) {
+                    const child = node.children[i];
+                    const result = getNodeUnderPoint(child, x, y);
+                    if (result) {
+                        return result;
+                    }
+                }
+            }
+            return null;
+        }
+
+        canvas.addEventListener("mousedown", event => {
+            const x = event.offsetX;
+            const y = event.offsetY;
+            dragNode = getNodeUnderPoint(tree, x, y);
+        });
+
+        canvas.addEventListener("mousemove", event => {
+            if (dragNode) {
+                dragNode.x = event.offsetX;
+                dragNode.y = event.offsetY;
+            }
+        });
+
+        canvas.addEventListener("mouseup", event => {
+            dragNode = null;
+        });
+
+        animateTree(tree, animDuration);
+    </script>
+</body>
+
+</html>

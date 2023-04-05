@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>链式前向星动态展示</title>
+</head>
+<body>
+  <div>
+    <label for="n">城市数量：</label>
+    <input type="number" id="n" name="n">
+    <button onclick="init()">初始化</button>
+  </div>
+  <div id="input-div"></div>
+  <canvas id="canvas" width="500" height="400"></canvas>
+  <div>
+    <h2>链式前向星数据结构</h2>
+    <p>head 数组：{{head}}</p>
+    <p>to 数组：{{to}}</p>
+    <p>nxt 数组：{{nxt}}</p>
+  </div>
+  <script>
+    let n, edges = [];
+
+    function init() {
+      n = parseInt(document.getElementById("n").value);
+      edges = [];
+      document.getElementById("input-div").innerHTML = "";
+      for (let i = 1; i < n; i++) {
+        const div = document.createElement("div");
+        div.innerHTML = `<label for="p${i}">起点：</label>
+                          <input type="number" id="p${i}" name="p${i}">
+                          <label for="q${i}">终点：</label>
+                          <input type="number" id="q${i}" name="q${i}">
+                          <label for="d${i}">长度：</label>
+                          <input type="number" id="d${i}" name="d${i}">
+                          <button onclick="addEdge(${i})">添加边</button>`;
+        document.getElementById("input-div").appendChild(div);
+      }
+      edges = [];
+      updateDisplay();
+    }
+
+    function addEdge(i) {
+      const u = parseInt(document.getElementById(`p${i}`).value);
+      const v = parseInt(document.getElementById(`q${i}`).value);
+      const w = parseInt(document.getElementById(`d${i}`).value);
+      edges.push([u, v, w]);
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      const head = new Array(n + 1).fill(-1);
+      const to = [], nxt = [];
+      let idx = 0;
+      for (let i = 0; i < edges.length; i++) {
+        const [u, v, w] = edges[i];
+        to.push(v);
+        nxt.push(head[u]);
+        head[u] = idx++;
+        to.push(u);
+        nxt.push(head[v]);
+        head[v] = idx++;
+      }
+
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const radius = 30;
+      const nodeX = [250, 100, 400, 100, 400];
+      const nodeY = [50, 200, 200, 350, 350];
+      const edgeColor = "#0000ff";
+      const nodeColor = "#ff0000";
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = nodeColor;
+      for (let i = 1; i <= n; i++) {
+        ctx.beginPath();
+       
+        ctx.arc(nodeX[i - 1], nodeY[i - 1], radius, 0, Math.PI * 2, true);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(i.toString(), nodeX[i - 1], nodeY[i - 1]);
+    ctx.fillStyle = nodeColor;
+  }
+
+  function drawEdge(u, v) {
+    ctx.beginPath();
+    ctx.moveTo(nodeX[u - 1], nodeY[u - 1]);
+    ctx.lineTo(nodeX[v - 1], nodeY[v - 1]);
+    ctx.strokeStyle = edgeColor;
+    ctx.stroke();
+  }
+
+  for (let i = 0; i < head.length; i++) {
+    let j = head[i];
+    while (j != -1) {
+      drawEdge(i, to[j]);
+      j = nxt[j];
+    }
+  }
+
+  const displayHead = JSON.stringify(head);
+  const displayTo = JSON.stringify(to);
+  const displayNxt = JSON.stringify(nxt);
+  document.getElementById("head").innerHTML = displayHead;
+  document.getElementById("to").innerHTML = displayTo;
+  document.getElementById("nxt").innerHTML = displayNxt;
+}
+</script>
+<div>
+  <h2>链式前向星数据结构</h2>
+  <p>head 数组：<span id="head"></span></p>
+  <p>to 数组：<span id="to"></span></p>
+  <p>nxt 数组：<span id="nxt"></span></p>
+</div>
+</body>
+</html>
